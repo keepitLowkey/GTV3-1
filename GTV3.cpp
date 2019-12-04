@@ -2432,17 +2432,9 @@ void sendWorld(ENetPeer* peer, WorldInfo* worldInfo)
 	//((PlayerInfo*)(peer->data))->droppeditemcount = worldInfo->droppedCount;
 	offsetData = dataLen - 100;
 
-	//              0       1       2       3       4       5       6       7       8       9      10     11      12      13      14
-	string asdf2 = "00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000";
 	BYTE* data2 = new BYTE[101];
+	memset(data2, 0, 101);
 	memcpy(data2 + 0, &zero, 4);
-	for (int i = 0; i < asdf2.length(); i += 2)
-	{
-		char x = ch2n(asdf2[i]);
-		x = x << 4;
-		x += ch2n(asdf2[i + 1]);
-		memcpy(data2 + (i / 2), &x, 1);
-	}
 	int weather = worldInfo->weather;
 	memcpy(data2 + 4, &weather, 4);
 
@@ -3335,16 +3327,10 @@ int main()
 		std::ifstream files("normalitems.dat", std::ios::binary | std::ios::ate);
 		itemsDatSizeNormal = files.tellg();
 		itemsDatNormal = new BYTE[60 + itemsDatSizeNormal];
-		string asdf2 = "0400000010000000FFFFFFFF000000000800000000000000000000000000000000000000000000000000000000000000000000000000000000000000";
-		for (int i = 0; i < asdf2.length(); i += 2)
-		{
-			char x = ch2n(asdf2[i]);
-			x = x << 4;
-			x += ch2n(asdf2[i + 1]);
-			memcpy(itemsDatNormal + (i / 2), &x, 1);
-			if (asdf2.length() > 60 * 2) throw 0;
-		}
-		memcpy(itemsDatNormal + 56, &itemsDatSizeNormal, 4);
+		itemsDatNormal[0] = 4;
+		itemsDatNormal[4] = 16;
+		*(uint32_t*)(itemsDatNormal + 8) = 0xFFFFFFFF;
+		*(uint32_t*)(itemsDatNormal + 56) = itemsDatSizeNormal;
 		files.seekg(0, std::ios::beg);
 
 		if (files.read((char*)(itemsDatNormal + 60), itemsDatSizeNormal))
