@@ -209,7 +209,7 @@ char* getPacketData(char* data)
 	return data + 4;
 }
 
-char* nameCharFilter = "1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+string nameCharFilter = "1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 string filterName(string  name) {
 	string filteredname = "";
 	for (int i = 0; i < name.length(); i++) {
@@ -462,8 +462,7 @@ string PlayerDB::fixColors(string text) {
 	return ret;
 }
 
-char* passCharFilter = "1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz!@#$%^&*()<>?:"|{}_+,./;'\\[]-=~`";
-
+string passCharFilter = "1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz!@#$%^&*()<>?:"|{}_+,./;'\\[]-=~`";
 string filterPass(string password) {
 
 	string filteredpass = "";
