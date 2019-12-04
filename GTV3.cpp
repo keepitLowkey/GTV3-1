@@ -209,18 +209,20 @@ char* getPacketData(char* data)
 	return data + 4;
 }
 
+char* nameCharFilter = "1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 string filterName(string  name) {
 	string filteredname = "";
 	for (int i = 0; i < name.length(); i++) {
 		string ch = name.substr(i, 1); // always take 1 character, and move next. EXAMPLE: we got password 12345, it will take first 1 and check, then 2 and check, and 3 and check, 4 and check, 5 and ccheck. it will scan ALL characters if bad symbols etc. because i is always getting a higher number cuz we said i++
-		if (ch != "a" && ch != "A" && ch != "b" && ch != "B" && ch != "c" && ch != "C" && ch != "d" && ch != "D" && ch != "e" && ch != "E"
-			&& ch != "f" && ch != "F" && ch != "g" && ch != "G" && ch != "h" && ch != "H" && ch != "i" && ch != "I" && ch != "j" && ch != "J"
-			&& ch != "k" && ch != "K" && ch != "l" && ch != "L" && ch != "m" && ch != "M" && ch != "n" && ch != "N" && ch != "o" && ch != "O" &&
-			ch != "p" && ch != "P" && ch != "q" && ch != "Q" && ch != "r" && ch != "R" && ch != "s" && ch != "S" && ch != "t" && ch != "T" && ch != "u" && ch != "U"
-			&& ch != "v" && ch != "V" && ch != "w" && ch != "W" && ch != "x" && ch != "X" && ch != "y" && ch != "Y" && ch != "z" && ch != "Z" && ch != "0" && ch != "1" && ch != "2"
-			&& ch != "3" && ch != "4" && ch != "5" && ch != "6" && ch != "7" && ch != "8" && ch != "9") {
+		
+		// Find the character in nameCharFilter
+		bool found = false;
+		for(int j = 0; j < 26 * 2 + 10; j++)
+		{
+			if (nameCharFilter[j] == ch)
+				found = true;
 		}
-		else
+		if (found)
 		{
 			filteredname = filteredname + ch;
 		}
