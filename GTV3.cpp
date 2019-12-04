@@ -3307,16 +3307,10 @@ int main()
 		std::ifstream file("items.dat", std::ios::binary | std::ios::ate);
 		itemsDatSize = file.tellg();
 		itemsDat = new BYTE[60 + itemsDatSize];
-		string asdf = "0400000010000000FFFFFFFF000000000800000000000000000000000000000000000000000000000000000000000000000000000000000000000000";
-		for (int i = 0; i < asdf.length(); i += 2)
-		{
-			char x = ch2n(asdf[i]);
-			x = x << 4;
-			x += ch2n(asdf[i + 1]);
-			memcpy(itemsDat + (i / 2), &x, 1);
-			if (asdf.length() > 60 * 2) throw 0;
-		}
-		memcpy(itemsDat + 56, &itemsDatSize, 4);
+		itemsDat[0] = 4;
+		itemsDat[4] = 16;
+		*(uint32_t*)(itemsDat + 8) = 0xFFFFFFFF;
+		*(uint32_t*)(itemsDat + 56) = itemsDatSize;
 		file.seekg(0, std::ios::beg);
 
 		if (file.read((char*)(itemsDat + 60), itemsDatSize))
@@ -6375,5 +6369,4 @@ int main()
 	cout << "Program ended??? Huh?" << endl;
 	return 0;
 }
-
 
