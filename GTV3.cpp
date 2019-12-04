@@ -564,7 +564,7 @@ int PlayerDB::playerLogin(ENetPeer* peer, string username, string password) {
 			}
 		}
 	}
-	if (on) Player::OnConsoleMessage(peer, "`4ALREADY ON??? `wIf you were online before this is nothing to worry about.``");
+	if (on) Player::OnConsoleMessage(peer, "`4ALREADY ON?! `o: This account was already online, kicking it off so you can log on. (if you were just playing before, this is nothing to worry about)``");
 	return 1;
 }
 
@@ -792,6 +792,7 @@ void WorldDB::flush(WorldInfo info)
 		tile["s"] = info.items[i].sign;
 		tile["d"] = info.items[i].displayBlock;
 		tile["gr"] = info.items[i].gravity;
+		// Why not add a simple type changing BlockData struct like I did?! - iProgramInCpp
 		tiles.push_back(tile);
 	}
 	j["tiles"] = tiles;
@@ -1311,7 +1312,7 @@ bool canClear(string username, string password) {
 bool isAdminPeer(ENetPeer* peer) {
 	for (int i = 0; i < admins.size(); i++) {
 		Admin admin = admins[i];
-		if (admin.username == ((PlayerInfo*)(peer->data))->rawName && admin.password == ((PlayerInfo*)(peer->data))->rawName && admin.level > 2) {
+		if (admin.username == ((PlayerInfo*)(peer->data))->rawName && admin.password == ((PlayerInfo*)(peer->data))->tankIDPass /* Seriously, wtf -> ((PlayerInfo*)(peer->data))->rawName */ && admin.level > 2) {
 			return true;
 		}
 	}
@@ -1509,7 +1510,7 @@ void sendTileUpdate(int x, int y, int tile, int causedBy, ENetPeer* peer)
 			}
 			else
 			{
-				Player::OnConsoleMessage(peer, "`oFor that you gotta `2own `othe world`w!``");
+				Player::OnConsoleMessage(peer, "`oOnly the block's owner can place items in this.``");
 				Player::OnPlayPositioned(peer, "audio/punch_locked.wav", netID, false, NULL);
 			}
 		}
@@ -1539,7 +1540,7 @@ void sendTileUpdate(int x, int y, int tile, int causedBy, ENetPeer* peer)
 			}
 			else
 			{
-				Player::OnTalkBubble(peer, netID, "You need to own this world to edit the sign!", 2, true);
+				Player::OnTalkBubble(peer, netID, "Only the block's owner can do that sadly.", 2, true);
 			}
 		}
 	}
@@ -1601,7 +1602,7 @@ void sendTileUpdate(int x, int y, int tile, int causedBy, ENetPeer* peer)
 		}
 		SendPacketRaw2(192, raw, 102, 0, peer, ENET_PACKET_FLAG_RELIABLE);
 		raw = NULL; // prevent memory leak*/
-		Player::OnTalkBubble(peer, ((PlayerInfo*)(peer->data))->netID, "`oThis `wfeature `ois going to be available soon``", 0, true);
+		Player::OnTalkBubble(peer, ((PlayerInfo*)(peer->data))->netID, "`oComing soon to GTv3!``", 0, true);
 	}
 
 	if (tile != 18 && tile != 32 && getItemDef(tile).blockType != BlockTypes::BACKGROUND && world->items[x + (y*world->width)].foreground != 0) {
@@ -1626,12 +1627,12 @@ void sendTileUpdate(int x, int y, int tile, int causedBy, ENetPeer* peer)
 	if (!isSuperAdmin(((PlayerInfo*)(peer->data))->rawName, ((PlayerInfo*)(peer->data))->tankIDPass))
 	{
 		if (world->items[x + (y*world->width)].foreground == 6 || world->items[x + (y*world->width)].foreground == 8 || world->items[x + (y*world->width)].foreground == 3760) {
-			Player::OnTalkBubble(peer, netID, "`wIt's too strong to break.``", 2, true);
+			Player::OnTalkBubble(peer, netID, "`wIt's too strong to break.``", 0, true);
 			Player::OnPlayPositioned(peer, "audio/punch_locked.wav", netID, false, NULL);
 			return;
 		}
 		if (tile == 6 || tile == 8 || tile == 3760 || tile == 6864) {
-			Player::OnTalkBubble(peer, netID, "`wIt's too heavy to place.``", 2, true);
+			Player::OnTalkBubble(peer, netID, "`wIt's too heavy to place.``", 0, true);
 			Player::OnPlayPositioned(peer, "audio/punch_locked.wav", netID, false, NULL);
 			return;
 		}
@@ -2620,11 +2621,15 @@ void joinWorld(ENetPeer* peer, string act) {
 			}
 			string upsd = act;
 			std::transform(upsd.begin(), upsd.end(), upsd.begin(), ::toupper);
+			
+			// what's the point of test world being banned if it shows up on world select?
+			/*
 			if (upsd == "TEST") {
 				Player::OnConsoleMessage(peer, "`4To reduce confusion, this is not a valid world name`w. `oTry another one`w?``");
 				Player::OnFailedToEnterWorld(peer);
 				return;
 			}
+			*/
 			if (upsd == "PVP") {
 
 				if (((PlayerInfo*)(peer->data))->isQueuing == false) {
@@ -2701,8 +2706,8 @@ void joinWorld(ENetPeer* peer, string act) {
 			//`2" + ((PlayerInfo*)(peer->data))->displayName
 
 
-			int x = 3040;
-			int y = 736;
+			int x = 0;
+			int y = 0;
 
 			for (int j = 0; j < info.width*info.height; j++)
 			{
@@ -2796,7 +2801,7 @@ void joinWorld(ENetPeer* peer, string act) {
 		else {
 			((PlayerInfo*)(peer->data))->currentWorld = "EXIT";
 			Player::OnFailedToEnterWorld(peer);
-			GamePacket p = packetEnd(appendString(appendString(createPacket(), "OnConsoleMessage"), "I know this menu is magical and all, but it has its limitations! You can't visit this world!"));
+			GamePacket p = packetEnd(appendString(appendString(createPacket(), "OnConsoleMessage"), "I know this menu is magical and all, but you can't visit this world!"));
 			ENetPacket * packet = enet_packet_create(p.data,
 				p.len,
 				ENET_PACKET_FLAG_RELIABLE);
@@ -2818,7 +2823,8 @@ void setupQueue() {
 			if (currentPeer->state != ENET_PEER_STATE_CONNECTED)
 				continue;
 			if (((PlayerInfo*)(currentPeer->data))->isWaitingForMatch) {
-				Player::OnAddNotification(currentPeer, "`2Still trying to find match...``", "audio/gong.wav", "interface/hommel.rttex");
+				// Changed gong to teleport to be less noisy.
+				Player::OnAddNotification(currentPeer, "`2Still trying to find match...``", "audio/teleport.wav", "interface/hommel.rttex");
 			}
 		}
 	}
@@ -3000,16 +3006,6 @@ void loadConfig() {
 	}
 }
 
-
-
-/*
-action|log
-msg|`4UPDATE REQUIRED!`` : The `$V2.981`` update is now available for your device.  Go get it!  You'll need to install it before you can play online.
-[DBG] Some text is here: action|set_url
-url|http://ubistatic-a.akamaihd.net/0098/20180909/GrowtopiaInstaller.exe
-label|Download Latest Version
-	*/
-	//Linux should not have any arguments in main function.
 std::string string_to_hex(const std::string& input)
 {
 	static const char* const lut = "0123456789ABCDEF";
@@ -3037,6 +3033,8 @@ void ServerInputPluginByplayingo()
 		if (buffer == "exit") // if exit is typed in server console:
 		{
 			// do stuff
+			// added saving worlds before exit by iProgramInCpp
+			saveAllWorlds();
 			exit(0);
 		}
 		else if (buffer == "save") {
@@ -3159,7 +3157,7 @@ char* appendCharToCharArray(char* array, char a)
 }
 
 int GetMacAddress(int a) {
-
+	// ?
 }
 
 int random_thing(float val) { return val / 2; }
@@ -3171,7 +3169,7 @@ int main()
 #endif
 {
 
-	cout << "Growtopia private server (c) GTV3" << endl;
+	cout << "GTv3 Server (c) PlayIngoHD/iProgramInCpp/ness/mar4ello6/Nabsi/Finland" << endl;
 	cout << "Loading config from config.json" << endl;
 	loadConfig();
 
@@ -3487,7 +3485,7 @@ int main()
 					((PlayerInfo*)(peer->data))->enetIP = peer->address.host;
 					if (count > 3)
 					{
-						Player::OnConsoleMessage(peer, "`rToo many accounts are logged on from this IP.Log off one account before playing please.``");
+						Player::OnConsoleMessage(peer, "`rToo many accounts are logged on from this IP. Log off one account before playing please.``");
 						enet_peer_disconnect_later(peer, 0);
 					}
 					else {
@@ -3529,9 +3527,10 @@ int main()
 				}
 				case ENET_EVENT_TYPE_RECEIVE:
 				{
+					if (serverIsFrozen) continue; // Not responding to packets.
 					
-					if (serverIsFrozen) continue;
 					if (event.packet->dataLength > 4096) {
+						// fix crash
 						enet_peer_reset(peer);
 						continue;
 					}
@@ -3965,7 +3964,7 @@ int main()
 								((PlayerInfo*)(peer->data))->isBot = false;
 							}
 							if (btn == "yesesto") {
-								Player::OnConsoleMessage(peer, "`oIf you want to buy dm GTV3 team!");
+								Player::OnConsoleMessage(peer, "`oIf you want to buy DM GTV3 team!");
 							}
 							if (btn == "no") {
 								sendShop(peer);
@@ -4019,7 +4018,7 @@ int main()
 								sendInventory(peer, ((PlayerInfo*)(peer->data))->inventory);
 							}
 							if (isTradeDialog) {
-								((PlayerInfo*)(peer->data))->currentTradeItems += "add_slot|" + to_string(((PlayerInfo*)(peer->data))->lastTradeItem) + "|" + tradeitemcount + "locked|0reset_locks|1accepted|1\n"; // TODO TRADE
+								((PlayerInfo*)(peer->data))->currentTradeItems += "add_slot|" + to_string(((PlayerInfo*)(peer->data))->lastTradeItem) + "|" + tradeitemcount + "locked|0\nreset_locks|1\naccepted|1\n"; // TODO TRADE
 								Player::OnTradeStatus(peer, ((PlayerInfo*)(peer->data))->lastTradeNetID, ((PlayerInfo*)(peer->data))->lastTradeName, ((PlayerInfo*)(peer->data))->currentTradeItems);
 							}
 #ifdef REGISTRATION
@@ -4273,7 +4272,7 @@ int main()
 									}
 								}
 								if (itemFind.length() < 3) {
-									listFull = "add_textbox|`4Word is less then 3 letters!``|\nadd_spacer|small|\n";
+									listFull = "add_textbox|`4Search query is less then 3 letters!``|\nadd_spacer|small|\n";
 									Player::showWrong(peer, listFull, itemFind);
 								}
 								else if (itemDefsfind.size() == 0) {
@@ -4301,7 +4300,7 @@ int main()
 
 							}
 
-							else if (str == "/cleaninv") {
+							else if (str == "/cleaninv" || str == "/ci") {
 								PlayerInventory inventory;
 								InventoryItem item;
 								inventory.items.clear();
@@ -4313,7 +4312,7 @@ int main()
 								((PlayerInfo*)(peer->data))->inventory = inventory;
 								sendInventory(peer, inventory);
 							}
-							else if (str == "/mods") {
+							else if (str == "/mods" || str == "/staff") {
 								string x;
 								int mods = 0;
 								ENetPeer* currentPeer;
@@ -4414,11 +4413,11 @@ int main()
 											
 										}
 										else {
-											Player::OnConsoleMessage(peer, "`4You cant enter the `wworld selection menu`o!``");
+											Player::OnConsoleMessage(peer, "`4You cant enter `wEXIT`o!``");
 										}
 									}
 									else {
-										Player::OnConsoleMessage(peer, "`4World cannot be `wnothing`o!``");
+										Player::OnConsoleMessage(peer, "`4World name cannot be `wnothing`o!``");
 									}
 								}
 							}
@@ -4633,13 +4632,13 @@ int main()
 											}
 										}
 
-										Player::OnConsoleMessage(peer, "`oUsed `4GTV3's `2Fast-Realtime-Clear system`w (like real gt)!``");
+										Player::OnConsoleMessage(peer, "`oUsed `4GTV3's `2Fast-Realtime-Clear system`w (Sort of like real GT)!``");
 									}
 								}
 							}
 
 							else if (str == "/clearlocks") {
-								if (getAdminLevel(((PlayerInfo*)(peer->data))->rawName, ((PlayerInfo*)(peer->data))->tankIDPass) == 4) {
+								if (getAdminLevel(((PlayerInfo*)(peer->data))->rawName, ((PlayerInfo*)(peer->data))->tankIDPass) > 3) {
 									int x = 0;
 									int y = 0;
 									if (((PlayerInfo*)(peer->data))->currentWorld != "EXIT") {
@@ -5475,7 +5474,8 @@ int main()
 
 								}
 								else {
-									Player::OnConsoleMessage(peer, "`wThis GrowID or Password doesn't seem `wvalid. `oIncase you `4lost `wyour `opassword, please contact the `qsupport`o, a `#moderator`o, or a `6developer`w.``");
+									Player::OnConsoleMessage(peer, "`wThis GrowID or Password doesn't seem `wvalid. `oIn case you `4lost `wyour `opassword, please contact the `qsupport`o, a `#moderator`o, or a `6developer`w.``");
+									SendPacket(3, "action|logon_fail\n", peer);
 									enet_peer_disconnect_later(peer, 0);
 								}
 #else
@@ -6194,6 +6194,7 @@ int main()
 													continue;
 												if (isHere(peer, currentPeer)) {
 													Player::PlayAudio(currentPeer, "audio/change_clothes.wav", 135);
+													// TODO: Change OnSetClothing because it has audio file built in.
 												}
 											}
 										}
@@ -6371,8 +6372,8 @@ int main()
 		}
 
 	}
-	cout << "Program ended??? Huh?" << endl;
 	while (1);
+	cout << "Program ended??? Huh?" << endl;
 	return 0;
 }
 
