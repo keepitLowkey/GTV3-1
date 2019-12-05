@@ -2409,25 +2409,23 @@ void sendWorld(ENetPeer* peer, WorldInfo* worldInfo)
 
 	}
 
-	/*int increase = 20;
-//TODO
-
 	int inc = 20;
-	memcpy(blockPtr, &worldInfo->droppedCount, 4);
+	int droppedItems = worldInfo->droppedItems.size();
+	memcpy(blockPtr, &droppedItems, 4);
 	memcpy(blockPtr + 4, &worldInfo->droppedCount, 4);
 
-	for (int i = 0; i < worldInfo->droppedCount; i++) {
+	for (int i = 0; i < droppedItems; i++) {
 
 		memcpy(blockPtr + inc - 12, &worldInfo->droppedItems.at(i).id, 2);
 		memcpy(blockPtr + inc - 10, &worldInfo->droppedItems.at(i).x, 4);
 		memcpy(blockPtr + inc - 6, &worldInfo->droppedItems.at(i).y, 4);
 		memcpy(blockPtr + inc - 2, &worldInfo->droppedItems.at(i).count, 2);
-		memcpy(blockPtr + inc, &i, 4);
+		memcpy(blockPtr + inc, &worldInfo->droppedItems.at(i).uid, 4);
 		inc += 16;
 
 	}
 	blockPtr += inc;
-	dataLen += inc;*/
+	dataLen += inc;
 
 	//((PlayerInfo*)(peer->data))->droppeditemcount = worldInfo->droppedCount;
 	offsetData = dataLen - 100;
