@@ -462,7 +462,7 @@ string PlayerDB::fixColors(string text) {
 	return ret;
 }
 
-string passCharFilter = "1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz!@#$%^&*()<>?:\"|{}_+,./;'\\[]-=~`";
+string passCharFilter = "1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz!@_.-";
 string filterPass(string password) {
 
 	string filteredpass = "";
