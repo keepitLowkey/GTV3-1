@@ -217,7 +217,7 @@ string filterName(string  name) {
 		
 		// Find the character in nameCharFilter
 		bool found = false;
-		for(int j = 0; j < 26 * 2 + 10; j++)
+		for(int j = 0; j < nameCharFilter.size(); j++)
 		{
 			if (nameCharFilter[j] == ch)
 				found = true;
@@ -470,7 +470,7 @@ string filterPass(string password) {
 		char ch = password[i]; // always take 1 character, and move next. EXAMPLE: we got password 12345, it will take first 1 and check, then 2 and check, and 3 and check, 4 and check, 5 and ccheck. it will scan ALL characters if bad symbols etc. because i is always getting a higher number cuz we said i++
 		
 		bool found = false;
-		for(int j = 0; j < 26 * 2 + 10 + 32; j++)
+		for(int j = 0; j < passCharFilter.size(); j++)
 		{
 			if (passCharFilter[j] == ch)
 				found = true;
