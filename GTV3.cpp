@@ -1011,7 +1011,6 @@ void craftItemDescriptions() {
 
 void sendDrop(ENetPeer* peer, int netID, int x, int y, int item, int count, BYTE specialEffect, WorldInfo* world)
 {
-
 	if (item >= coredatasize - 2) return;
 	if (item < 0) return;
 	ENetPeer * currentPeer;
@@ -1056,7 +1055,14 @@ void dropItem(ENetPeer* peer, int netID, int x, int y, int item, int count, BYTE
 	//int dcount = world->droppedCount;
 	// TODO
 
-
+	// Add server sided code by iProgramMC
+	world->droppedItemUid++;
+	DroppedItem item;
+	item.uid = world->droppedItemUid;
+	item.x = x; item.y = y;
+	item.cnt = count;
+	item.id = id;
+	world->droppedItems.push_back(item);
 	sendDrop(peer, netID, x, y, item, count, specialEffect, world);
 }
 
@@ -5725,7 +5731,6 @@ int main()
 								{
 									//cout << pMov->x << ";" << pMov->y << ";" << pMov->plantingTree << ";" << pMov->punchX << endl					
 									int playerditemcount = ((PlayerInfo*)(event.peer->data))->droppeditemcount;
-									if (!world) continue;
 									sendCollect(peer, ((PlayerInfo*)(event.peer->data))->netID, pMov->x, pMov->y, pMov->plantingTree);
 								}
 
